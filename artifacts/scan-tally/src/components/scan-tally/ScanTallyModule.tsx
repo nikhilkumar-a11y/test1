@@ -449,12 +449,12 @@ export function ScanTallyModule() {
             ]).map((t) => (
               <button key={t.k} onClick={() => setTab(t.k)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-bold transition-all",
+                  "inline-flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-bold transition-all",
                   tab === t.k
-                    ? "bg-card shadow-sm text-foreground"
+                    ? "bg-background text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground",
                 )}>
-                <t.I className="h-3.5 w-3.5" />{t.l}
+                <t.I className="h-4 w-4" /> {t.l}
               </button>
             ))}
           </div>
@@ -463,73 +463,41 @@ export function ScanTallyModule() {
 
       {/* ── SCAN TAB ── */}
       {tab === "scan" && (
-        <div className="space-y-6 p-6">
-          {isCompleted && (
-            <div className="flex items-start gap-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 p-4">
-              <CheckCircle2 className="h-5 w-5 mt-0.5 shrink-0 text-emerald-600" />
-              <div>
-                <div className="font-bold text-emerald-800 text-sm">Session Completed</div>
-                <div className="text-xs text-emerald-700 mt-0.5">
-                  Accuracy {accuracy}% · {scannedCount} scanned · {missing} missing
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="flex flex-col gap-5 p-5">
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            {/* Scan input panel */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+
+            {/* Scanner card */}
             <div className="lg:col-span-4">
-              <div className="flex flex-col rounded-xl border bg-card p-5 gap-5 h-full">
-                <div>
-                  <div className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    {isFM ? "FM · First-Mile" : "LM · Last-Mile"} · {hub.name}
+              <div className="rounded-xl border-2 border-primary/20 bg-card p-5 shadow-sm h-full flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                    <Barcode className="h-4 w-4" /> AWB Scanner
                   </div>
-
-                  {/* Progress ring */}
-                  <div className="mb-4 flex items-center gap-4">
-                    <ProgressRing
-                      value={scannedCount - excessCount}
-                      max={totalExpected}
-                      accuracy={accuracy}
-                    />
-                    <div className="flex-1 space-y-1.5">
-                      <StatRow label="Expected"  value={totalExpected} />
-                      <StatRow label="Scanned"   value={scannedCount - excessCount} color="text-teal-700" />
-                      <StatRow label="Missing"   value={missing}       color={missing > 0 ? "text-red-700" : undefined} />
-                      {excessCount > 0 && <StatRow label="Excess" value={excessCount} color="text-orange-700" />}
-                    </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Ready
                   </div>
                 </div>
 
-                {/* Scan input */}
-                <div>
-                  <label className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    <Barcode className="h-3.5 w-3.5" /> Scan AWB
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      ref={inputRef}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => e.key === "Enter" && pushScan(input)}
-                      disabled={isCompleted}
-                      placeholder="RX110001"
-                      className="flex-1 rounded-lg border bg-background px-3 py-2.5 font-mono text-sm font-bold placeholder:text-muted-foreground/40 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                    />
-                    <button
-                      onClick={() => pushScan(input)}
-                      disabled={isCompleted || !input.trim()}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                    >
-                      <ScanLine className="h-4 w-4" />
-                    </button>
-                  </div>
+                <div className="relative">
+                  <ScanLine className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-8 w-8 text-primary/40" />
+                  <input
+                    ref={inputRef}
+                    value={input}
+                    autoFocus
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") pushScan(input); }}
+                    disabled={isCompleted}
+                    placeholder="Scan or Enter AWB"
+                    className="h-[90px] w-full rounded-xl border-2 border-primary/30 bg-background pl-16 pr-4 text-[28px] font-mono font-black tracking-widest placeholder:text-base placeholder:font-normal placeholder:tracking-normal placeholder:text-muted-foreground/40 outline-none focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all disabled:opacity-50"
+                  />
                 </div>
 
-                {/* Live AWB lookup preview */}
+                {/* Live AWB lookup preview — shows status as user types */}
                 {liveMatch && !error && (
                   <div className={cn(
-                    "flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5",
+                    "mt-3 flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5",
                     STATUS_BADGE[liveMatch.status]?.bg ?? "bg-muted",
                     "border-current/10"
                   )}>
@@ -559,18 +527,18 @@ export function ScanTallyModule() {
                   </div>
                 )}
 
-                {/* Error alert */}
+                {/* Error alert — duplicate / excess / invalid */}
                 {error && (
-                  <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm">
+                  <div className="mt-3 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm">
                     <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
                     <div className="text-red-800 font-bold">{error.message}</div>
                   </div>
                 )}
 
-                {/* Scan warning */}
+                {/* Scan alert — aging / priority */}
                 {scanWarning && (
                   <div className={cn(
-                    "flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm",
+                    "mt-3 flex items-start gap-2.5 rounded-lg border px-3.5 py-3 text-sm",
                     scanWarning.kind === "priority"
                       ? "border-pink-200 bg-pink-50 text-pink-800"
                       : "border-amber-200 bg-amber-50 text-amber-800",
@@ -579,6 +547,35 @@ export function ScanTallyModule() {
                       ? <Zap className="mt-0.5 h-4 w-4 shrink-0 text-pink-600" />
                       : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />}
                     <div className="font-bold">{scanWarning.message}</div>
+                  </div>
+                )}
+
+                {/* LM demo seeds */}
+                {!isFM && (
+                  <div className="mt-auto pt-5">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-2">Demo · click to scan</div>
+                    <div className="flex flex-col gap-2">
+                      {([
+                        { awbs: ["RX110001","RX110002"], label: "Fresh",    cls: "border-emerald-200 bg-emerald-50 text-emerald-800" },
+                        { awbs: ["RX110003","RX110004"], label: "Priority", cls: "border-red-300     bg-red-50     text-red-800"     },
+                        { awbs: ["RX110005","RX110006"], label: "UD",       cls: "border-amber-200  bg-amber-50   text-amber-800"   },
+                        { awbs: ["RX110007","RX110008"], label: "Refusal",  cls: "border-red-200    bg-red-50     text-red-800"     },
+                        { awbs: ["RX110009","RX110010"], label: "RTO",      cls: "border-purple-200 bg-purple-50  text-purple-800"  },
+                        { awbs: ["RX110013","RX110014"], label: "Excess",   cls: "border-orange-200 bg-orange-50  text-orange-800"  },
+                      ]).map(({ awbs, label, cls }) => (
+                        <div key={label} className="flex items-center gap-1.5">
+                          <span className="w-14 shrink-0 text-[10px] font-black uppercase tracking-wider text-muted-foreground">{label}</span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {awbs.map((a) => (
+                              <button key={a} onClick={() => pushScan(a)}
+                                className={`rounded-md border px-2 py-1 font-mono text-[11px] font-semibold hover:opacity-75 transition-opacity ${cls}`}>
+                                {a}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
